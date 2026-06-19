@@ -1,0 +1,358 @@
+# Chapter 8: SLO recording rules and burn-rate alerting rules.
+#
+# Defines pre-computed error ratios across multiple time windows for the
+# three checkout SLIs (Availability, Latency, Correctness) and the
+# multi-window multi-burn-rate alerts described in section 8.6.
+#
+# SLO targets:
+#   - Availability:  99.9%   (1 - 0.001)
+#   - Latency (<2s): 99.0%   (1 - 0.01)
+#   - Correctness:   99.99%  (1 - 0.0001)
+#
+# Burn-rate thresholds (per Google SRE Workbook):
+#   - Critical (page now): 14.4× over 1h AND 5m  (consumes 2% budget/h)
+#   - Urgent  (page biz):   6.0× over 6h AND 30m (consumes 5% budget/6h)
+#   - Ticket  (file work):  1.0× over 3d AND 6h  (consumes 10% budget/3d)
+#
+# Note on the latency bucket boundary:
+#   The chapter 8 SLO text targets a 2.0-second checkout threshold, but the
+#   default Prometheus histogram bucket boundaries include 1.0 and 2.5 (no
+#   2.0 boundary). We use le="2.5" here, which slightly over-counts "good"
+#   events. To use an exact 2.0s threshold, configure custom bucket
+#   boundaries on the http_server_request_duration_seconds histogram.
+
+groups:
+  # --------------------------------------------------------------
+  # Recording rules: pre-computed error ratios for the SLIs
+  # --------------------------------------------------------------
+  - name: slo-checkout-recording
+    interval: 30s
+    rules:
+      # ---------- Availability: 5xx ratio on POST /orders ----------
+      - record: checkout:availability_error_ratio_5m
+        expr: |
+          (sum(rate(http_server_request_duration_seconds_count{
+            job="orders",
+            http_route="/orders",
+            http_request_method="POST",
+            http_response_status_code=~"5.."
+          }[5m])) or vector(0))
+          /
+          sum(rate(http_server_request_duration_seconds_count{
+            job="orders",
+            http_route="/orders",
+            http_request_method="POST"
+          }[5m]))
+
+      - record: checkout:availability_error_ratio_30m
+        expr: |
+          (sum(rate(http_server_request_duration_seconds_count{
+            job="orders",
+            http_route="/orders",
+            http_request_method="POST",
+            http_response_status_code=~"5.."
+          }[30m])) or vector(0))
+          /
+          sum(rate(http_server_request_duration_seconds_count{
+            job="orders",
+            http_route="/orders",
+            http_request_method="POST"
+          }[30m]))
+
+      - record: checkout:availability_error_ratio_1h
+        expr: |
+          (sum(rate(http_server_request_duration_seconds_count{
+            job="orders",
+            http_route="/orders",
+            http_request_method="POST",
+            http_response_status_code=~"5.."
+          }[1h])) or vector(0))
+          /
+          sum(rate(http_server_request_duration_seconds_count{
+            job="orders",
+            http_route="/orders",
+            http_request_method="POST"
+          }[1h]))
+
+      - record: checkout:availability_error_ratio_6h
+        expr: |
+          (sum(rate(http_server_request_duration_seconds_count{
+            job="orders",
+            http_route="/orders",
+            http_request_method="POST",
+            http_response_status_code=~"5.."
+          }[6h])) or vector(0))
+          /
+          sum(rate(http_server_request_duration_seconds_count{
+            job="orders",
+            http_route="/orders",
+            http_request_method="POST"
+          }[6h]))
+
+      - record: checkout:availability_error_ratio_3d
+        expr: |
+          (sum(rate(http_server_request_duration_seconds_count{
+            job="orders",
+            http_route="/orders",
+            http_request_method="POST",
+            http_response_status_code=~"5.."
+          }[3d])) or vector(0))
+          /
+          sum(rate(http_server_request_duration_seconds_count{
+            job="orders",
+            http_route="/orders",
+            http_request_method="POST"
+          }[3d]))
+
+      # ---------- Latency: proportion of requests over 2 seconds ----------
+      # "Bad" = total - bucket(le=2.0). Requires the 2s bucket to exist.
+      - record: checkout:latency_error_ratio_5m
+        expr: |
+          1 -
+          (
+            sum(rate(http_server_request_duration_seconds_bucket{
+              job="orders",
+              http_route="/orders",
+              http_request_method="POST",
+              le="2.5"
+            }[5m]))
+            /
+            sum(rate(http_server_request_duration_seconds_count{
+              job="orders",
+              http_route="/orders",
+              http_request_method="POST"
+            }[5m]))
+          )
+
+      - record: checkout:latency_error_ratio_30m
+        expr: |
+          1 -
+          (
+            sum(rate(http_server_request_duration_seconds_bucket{
+              job="orders",
+              http_route="/orders",
+              http_request_method="POST",
+              le="2.5"
+            }[30m]))
+            /
+            sum(rate(http_server_request_duration_seconds_count{
+              job="orders",
+              http_route="/orders",
+              http_request_method="POST"
+            }[30m]))
+          )
+
+      - record: checkout:latency_error_ratio_1h
+        expr: |
+          1 -
+          (
+            sum(rate(http_server_request_duration_seconds_bucket{
+              job="orders",
+              http_route="/orders",
+              http_request_method="POST",
+              le="2.5"
+            }[1h]))
+            /
+            sum(rate(http_server_request_duration_seconds_count{
+              job="orders",
+              http_route="/orders",
+              http_request_method="POST"
+            }[1h]))
+          )
+
+      - record: checkout:latency_error_ratio_6h
+        expr: |
+          1 -
+          (
+            sum(rate(http_server_request_duration_seconds_bucket{
+              job="orders",
+              http_route="/orders",
+              http_request_method="POST",
+              le="2.5"
+            }[6h]))
+            /
+            sum(rate(http_server_request_duration_seconds_count{
+              job="orders",
+              http_route="/orders",
+              http_request_method="POST"
+            }[6h]))
+          )
+
+      - record: checkout:latency_error_ratio_3d
+        expr: |
+          1 -
+          (
+            sum(rate(http_server_request_duration_seconds_bucket{
+              job="orders",
+              http_route="/orders",
+              http_request_method="POST",
+              le="2.5"
+            }[3d]))
+            /
+            sum(rate(http_server_request_duration_seconds_count{
+              job="orders",
+              http_route="/orders",
+              http_request_method="POST"
+            }[3d]))
+          )
+
+      # ---------- Correctness: orders.checkout.failures by failure_reason ----------
+      # "Bad" = price_mismatch failures over total attempts.
+      # Note: the OpenTelemetry attribute `failure.reason` is exposed by the
+      # Prometheus exporter as the label `failure_reason`. Additional
+      # correctness reasons (e.g. double_charge, missing_item) can be added
+      # to a regex matcher once those failure paths are instrumented.
+      - record: checkout:correctness_error_ratio_5m
+        expr: |
+          (sum(rate(orders_checkout_failures_total{failure_reason="price_mismatch"}[5m])) or vector(0))
+          /
+          sum(rate(orders_checkout_attempts_total[5m]))
+
+      - record: checkout:correctness_error_ratio_30m
+        expr: |
+          (sum(rate(orders_checkout_failures_total{failure_reason="price_mismatch"}[30m])) or vector(0))
+          /
+          sum(rate(orders_checkout_attempts_total[30m]))
+
+      - record: checkout:correctness_error_ratio_1h
+        expr: |
+          (sum(rate(orders_checkout_failures_total{failure_reason="price_mismatch"}[1h])) or vector(0))
+          /
+          sum(rate(orders_checkout_attempts_total[1h]))
+
+      - record: checkout:correctness_error_ratio_6h
+        expr: |
+          (sum(rate(orders_checkout_failures_total{failure_reason="price_mismatch"}[6h])) or vector(0))
+          /
+          sum(rate(orders_checkout_attempts_total[6h]))
+
+      - record: checkout:correctness_error_ratio_3d
+        expr: |
+          (sum(rate(orders_checkout_failures_total{failure_reason="price_mismatch"}[3d])) or vector(0))
+          /
+          sum(rate(orders_checkout_attempts_total[3d]))
+
+  # --------------------------------------------------------------
+  # Alerting rules: multi-window multi-burn-rate
+  # --------------------------------------------------------------
+  - name: slo-checkout-alerts
+    rules:
+      # ---------- Availability (SLO 99.9%, budget = 0.001) ----------
+      - alert: CheckoutAvailabilityBudgetCritical
+        expr: |
+          (checkout:availability_error_ratio_1h > (14.4 * 0.001))
+          and
+          (checkout:availability_error_ratio_5m > (14.4 * 0.001))
+        for: 2m
+        labels:
+          severity: critical
+          slo: checkout-availability
+        annotations:
+          summary: "Checkout availability error budget burning at 14.4× rate"
+          description: "Budget exhausts in ~2 days at this rate. Consumed ~2% in the last hour."
+
+      - alert: CheckoutAvailabilityBudgetUrgent
+        expr: |
+          (checkout:availability_error_ratio_6h > (6 * 0.001))
+          and
+          (checkout:availability_error_ratio_30m > (6 * 0.001))
+        for: 15m
+        labels:
+          severity: warning
+          slo: checkout-availability
+        annotations:
+          summary: "Checkout availability error budget burning at 6× rate"
+          description: "Budget exhausts in ~5 days at this rate. Consumed ~5% in the last 6 hours."
+
+      - alert: CheckoutAvailabilityBudgetTicket
+        expr: |
+          (checkout:availability_error_ratio_3d > 0.001)
+          and
+          (checkout:availability_error_ratio_6h > 0.001)
+        for: 1h
+        labels:
+          severity: info
+          slo: checkout-availability
+        annotations:
+          summary: "Checkout availability burning budget at sustainable-rate ceiling"
+          description: "Sustained errors at the SLO baseline. Open a tracking ticket."
+
+      # ---------- Latency (SLO 99% < 2s, budget = 0.01) ----------
+      - alert: CheckoutLatencyBudgetCritical
+        expr: |
+          (checkout:latency_error_ratio_1h > (14.4 * 0.01))
+          and
+          (checkout:latency_error_ratio_5m > (14.4 * 0.01))
+        for: 2m
+        labels:
+          severity: critical
+          slo: checkout-latency
+        annotations:
+          summary: "Checkout latency error budget burning at 14.4× rate"
+          description: "Too many checkouts exceeding 2s. Budget exhausts in ~2 days at this rate."
+
+      - alert: CheckoutLatencyBudgetUrgent
+        expr: |
+          (checkout:latency_error_ratio_6h > (6 * 0.01))
+          and
+          (checkout:latency_error_ratio_30m > (6 * 0.01))
+        for: 15m
+        labels:
+          severity: warning
+          slo: checkout-latency
+        annotations:
+          summary: "Checkout latency error budget burning at 6× rate"
+          description: "Sustained slow checkouts. Budget exhausts in ~5 days."
+
+      - alert: CheckoutLatencyBudgetTicket
+        expr: |
+          (checkout:latency_error_ratio_3d > 0.01)
+          and
+          (checkout:latency_error_ratio_6h > 0.01)
+        for: 1h
+        labels:
+          severity: info
+          slo: checkout-latency
+        annotations:
+          summary: "Checkout latency burning budget at sustainable-rate ceiling"
+          description: "Sustained slow checkouts at the SLO baseline. Open a tracking ticket."
+
+      # ---------- Correctness (SLO 99.99%, budget = 0.0001) ----------
+      - alert: CheckoutCorrectnessBudgetCritical
+        expr: |
+          (checkout:correctness_error_ratio_1h > (14.4 * 0.0001))
+          and
+          (checkout:correctness_error_ratio_5m > (14.4 * 0.0001))
+        for: 2m
+        labels:
+          severity: critical
+          slo: checkout-correctness
+        annotations:
+          summary: "Checkout correctness error budget burning at 14.4× rate"
+          description: "Price mismatches or double charges detected at unacceptable rate."
+
+      - alert: CheckoutCorrectnessBudgetUrgent
+        expr: |
+          (checkout:correctness_error_ratio_6h > (6 * 0.0001))
+          and
+          (checkout:correctness_error_ratio_30m > (6 * 0.0001))
+        for: 15m
+        labels:
+          severity: warning
+          slo: checkout-correctness
+        annotations:
+          summary: "Checkout correctness error budget burning at 6× rate"
+          description: "Sustained correctness errors. Investigate price/charge integrity."
+
+      - alert: CheckoutCorrectnessBudgetTicket
+        expr: |
+          (checkout:correctness_error_ratio_3d > 0.0001)
+          and
+          (checkout:correctness_error_ratio_6h > 0.0001)
+        for: 1h
+        labels:
+          severity: info
+          slo: checkout-correctness
+        annotations:
+          summary: "Checkout correctness burning budget at sustainable-rate ceiling"
+          description: "Low-rate correctness errors are eating the monthly budget. Open a ticket."

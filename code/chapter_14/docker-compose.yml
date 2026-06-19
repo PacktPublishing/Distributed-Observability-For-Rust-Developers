@@ -1,0 +1,320 @@
+services:
+  # ============================================================
+  # Jaeger - Distributed Tracing Backend
+  # ============================================================
+  # All-in-one Jaeger instance for collecting and visualizing traces
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC receiver
+      - "4318:4318"    # OTLP HTTP receiver
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Prometheus - Metrics Backend
+  # ============================================================
+  # Prometheus 3.0 receives metrics via OTLP HTTP push (no scrape targets needed)
+  prometheus:
+    image: prom/prometheus:v3.0.0
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.enable-otlp-receiver'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Grafana - Dashboards & Visualization
+  # ============================================================
+  # Queries Prometheus (metrics), Jaeger (traces), and Loki (logs)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+    depends_on:
+      - prometheus
+      - jaeger
+      - loki
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Loki - Log Aggregation Backend
+  # ============================================================
+  # Receives logs via OTLP HTTP from OpenTelemetry SDK
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Database Service
+  # ============================================================
+  # PostgreSQL with automatic schema initialization
+  postgres:
+    image: postgres:17-alpine
+    container_name: opentel-postgres
+    environment:
+      - POSTGRES_USER=opentel_user
+      - POSTGRES_PASSWORD=opentel_pass
+      - POSTGRES_DB=opentel_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Schema initialization scripts run automatically on first startup
+      - ./schemas/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opentel_user -d opentel_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Products Service
+  # ============================================================
+  # RESTful API for product catalog (runs migrations on startup)
+  products:
+    build:
+      context: .
+      dockerfile: products/Dockerfile
+    container_name: products-service
+    ports:
+      - "3001:3001"
+    environment:
+      - APP_DATABASE_URL=postgres://opentel_user:opentel_pass@postgres:5432/opentel_db
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://jaeger:4317
+      - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://prometheus:9090/api/v1/otlp/v1/metrics
+      - OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://loki:3100/otlp/v1/logs
+      - OTEL_SERVICE_NAME=products
+      - RUST_LOG=info,opentelemetry=off,otel::tracing=trace
+    depends_on:
+      postgres:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+      prometheus:
+        condition: service_started
+      loki:
+        condition: service_started
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Inventory Service
+  # ============================================================
+  # RESTful API for inventory and pricing management (runs migrations on startup)
+  inventory:
+    build:
+      context: .
+      dockerfile: inventory/Dockerfile
+    container_name: inventory-service
+    ports:
+      - "3002:3002"
+    environment:
+      - APP_DATABASE_URL=postgres://opentel_user:opentel_pass@postgres:5432/opentel_db
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://jaeger:4317
+      - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://prometheus:9090/api/v1/otlp/v1/metrics
+      - OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://loki:3100/otlp/v1/logs
+      - OTEL_SERVICE_NAME=inventory
+      - RUST_LOG=info,opentelemetry=off,otel::tracing=trace
+    depends_on:
+      postgres:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+      prometheus:
+        condition: service_started
+      loki:
+        condition: service_started
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Orders Service
+  # ============================================================
+  # RESTful API for order management, checkout, and shipment tracking (runs migrations on startup)
+  orders:
+    build:
+      context: .
+      dockerfile: orders/Dockerfile
+    container_name: orders-service
+    ports:
+      - "3003:3003"
+    environment:
+      - APP_DATABASE_URL=postgres://opentel_user:opentel_pass@postgres:5432/opentel_db
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://jaeger:4317
+      - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://prometheus:9090/api/v1/otlp/v1/metrics
+      - OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://loki:3100/otlp/v1/logs
+      - OTEL_SERVICE_NAME=orders
+      - RUST_LOG=info,opentelemetry=off,otel::tracing=trace
+    depends_on:
+      postgres:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+      prometheus:
+        condition: service_started
+      loki:
+        condition: service_started
+      fraud_scoring:
+        condition: service_started
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Fraud Scoring Service
+  # ============================================================
+  # GenAI-powered fraud scoring for checkout orders
+  # Uses mock provider by default; set FRAUD_SCORING_PROVIDER_NAME=anthropic
+  # and ANTHROPIC_API_KEY for real API calls
+  fraud_scoring:
+    build:
+      context: .
+      dockerfile: fraud_scoring/Dockerfile
+    container_name: fraud-scoring-service
+    ports:
+      - "3004:3004"
+    environment:
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://jaeger:4317
+      - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://prometheus:9090/api/v1/otlp/v1/metrics
+      - OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://loki:3100/otlp/v1/logs
+      - OTEL_SERVICE_NAME=fraud_scoring
+      - RUST_LOG=info,opentelemetry=off,otel::tracing=trace
+      # To use real Anthropic API, set these two env vars on your host:
+      #   $env:ANTHROPIC_API_KEY = "sk-ant-..."
+      #   $env:FRAUD_SCORING_PROVIDER_NAME = "anthropic"
+      - FRAUD_SCORING_PROVIDER_NAME=${FRAUD_SCORING_PROVIDER_NAME:-mock}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+    depends_on:
+      jaeger:
+        condition: service_started
+      prometheus:
+        condition: service_started
+      loki:
+        condition: service_started
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Data Ingestion Service
+  # ============================================================
+  # Loads initial data after products service runs migrations
+  # Note: Waits 10s after products starts to ensure migrations complete
+  data-ingestion:
+    build:
+      context: ./schemas
+      dockerfile: data/Dockerfile
+    container_name: data-ingestion
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=opentel_db
+      - DB_USER=opentel_user
+      - DB_PASSWORD=opentel_pass
+      - WAIT_TIME=10
+    depends_on:
+      postgres:
+        condition: service_healthy
+      products:
+        condition: service_started
+    networks:
+      - app-network
+    restart: "no"  # Run once and exit
+
+  # ============================================================
+  # OtelMart Service
+  # ============================================================
+  # Main e-commerce application (Rust backend + Angular frontend)
+  otelmart:
+    build:
+      context: .
+      dockerfile: otelmart/Dockerfile
+    container_name: otelmart
+    ports:
+      - "4200:4200"
+    environment:
+      - APP_DATABASE__URL=postgres://opentel_user:opentel_pass@postgres:5432/opentel_db
+      - APP_SERVICES__PRODUCTS_HOST=products
+      - APP_SERVICES__PRODUCTS_PORT=3001
+      - APP_SERVICES__INVENTORY_HOST=inventory
+      - APP_SERVICES__INVENTORY_PORT=3002
+      - APP_SERVICES__ORDERS_HOST=orders
+      - APP_SERVICES__ORDERS_PORT=3003
+      - APP_SERVICES__INVENTORY_SERVICE_URL=http://inventory:3002
+      - APP_SERVICES__ORDERS_SERVICE_URL=http://orders:3003
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://jaeger:4317
+      - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://prometheus:9090/api/v1/otlp/v1/metrics
+      - OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://loki:3100/otlp/v1/logs
+      - OTEL_SERVICE_NAME=otelmart
+      - RUST_LOG=info,opentelemetry=off,otel::tracing=trace
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+      prometheus:
+        condition: service_started
+      loki:
+        condition: service_started
+      data-ingestion:
+        condition: service_completed_successfully
+      products:
+        condition: service_started
+      inventory:
+        condition: service_started
+      orders:
+        condition: service_started
+    networks:
+      - app-network
+    restart: unless-stopped
+
+# ============================================================
+# Networks
+# ============================================================
+networks:
+  app-network:
+    driver: bridge
+
+# ============================================================
+# Volumes
+# ============================================================
+volumes:
+  postgres_data:
+    name: opentel_postgres_data
+  loki_data:
+    name: opentel_loki_data

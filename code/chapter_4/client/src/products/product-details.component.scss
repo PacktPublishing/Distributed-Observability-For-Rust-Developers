@@ -1,0 +1,65 @@
+:host {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 16px;
+    height: 100%;
+}
+
+img {
+    aspect-ratio: 5;
+    object-fit: cover;
+}
+
+.brand {
+    background-color: var(--violet-0);
+    border-color: var(--violet-8);
+    color: var(--violet-11);
+}
+
+.discount {
+    background-color: var(--pink-0);
+    border-color: var(--pink-8);
+    color: var(--pink-11);
+}
+
+.category {
+    background-color: var(--cyan-0);
+    border-color: var(--cyan-8);
+    color: var(--cyan-11);
+}
+
+.stock {
+    background-color: var(--teal-3);
+    border-color: var(--teal-8);
+    color: var(--teal-11);
+    font-weight: 600;
+    font-size: .76rem;
+    i {
+        font-size: .85rem;
+        color: var(--gray-12);
+    }
+}
+
+li {
+    padding-left: 0;
+    border: none;
+
+    i {
+        font-size: 1.25rem;
+    }
+}
+
+.back,
+.btn-add-cart {
+    background-color: var(--gray-8);
+    border: 1px solid var(--gray-8);
+    transition: all 0.3s ease;
+    color: var(--gray-0);
+
+    &:hover,
+    &:focus,
+    &:active {
+        background-color: var(--gray-10);
+        color: var(--gray-0);
+    }
+}

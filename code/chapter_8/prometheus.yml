@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Chapter 8: Load SLO recording rules and burn-rate alerting rules.
+rule_files:
+  - /etc/prometheus/prometheus-rules.yml

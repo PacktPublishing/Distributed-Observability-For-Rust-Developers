@@ -1,0 +1,46 @@
+.card-header,
+.card-footer {
+    background-color: inherit;
+}
+
+.brand {
+    background-color: var(--violet-0);
+    border-color: var(--violet-8);
+    color: var(--violet-11);
+}
+
+.discount {
+    background-color: var(--pink-0);
+    border-color: var(--pink-8);
+    color: var(--pink-11);
+}
+
+.card {
+    transition: all 0.3s ease;
+
+    &:hover {
+        border-color: var(--blue-7);
+    }
+
+    &[disabled="true"] {
+        opacity: 0.8;
+        pointer-events: none;
+    }
+}
+
+.card-title {
+    color: var(--gray-8);
+}
+
+.btn-add-cart {
+    border: 1px solid var(--gray-8);
+    transition: all 0.3s ease;
+    color: var(--gray-8);
+
+    &:hover,
+    &:focus,
+    &:active {
+        background-color: var(--gray-10);
+        color: var(--gray-1);
+    }
+}

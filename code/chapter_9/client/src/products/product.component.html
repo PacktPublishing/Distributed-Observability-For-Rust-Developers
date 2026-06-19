@@ -1,0 +1,39 @@
+<a class="card text-decoration-none" [routerLink]="[product().eid]" [attr.disabled]="addingToCart()">
+  <header class="card-header d-flex justify-content-between align-items-start p-3 border-bottom-0">
+    @if (product().brand) {
+      <span class="brand badge fw-semibold border rounded-2 px-2">{{ product().brand | titlecase }}</span>
+    }
+    @if (product().discount) {
+      <span class="discount badge fw-semibold border rounded-2 px-2 py-1">{{ discount | number: '.1' }}% OFF</span>
+    }
+  </header>
+  <div class="card-body pt-0">
+    <h5 class="card-title">{{ product().product_name }}</h5>
+    <div class="rating d-flex gap-1 mb-2 text-warning align-items-center">
+      <i class="bi bi-star" [ngClass]="ratingStars()"></i>
+      <small class="text-muted ms-1">{{ product().average_rating || 'No rating' }}</small>
+    </div>
+    <p class="card-text text-body-secondary">{{ product().description }}</p>
+  </div>
+  <div class="card-footer border-top-0 justify-content-between d-flex align-items-center">
+    <div class="d-flex align-items-center">
+      <h6 class="mb-0">{{ product().final_price | currency: 'USD' }}</h6>
+      @if (product()!.initial_price && product()!.discount) {
+        <small class="text-muted ms-2 text-decoration-line-through">
+          {{ product().initial_price | currency: 'USD' }}
+        </small>
+      }
+    </div>
+    <button class="btn btn-add-cart py-0" [disabled]="product()!.stock === 0" (click)="addToCart($event)">
+      @if (product()!.stock === 0) {
+        Out of Stock
+      } @else {
+        <i class="bi bi-cart-plus fs-5 pe-none"></i>
+      }
+    </button>
+  </div>
+</a>
+
+<div class="cart-morph rounded-circle" #morphDiv>
+  <span class="p-1">+1</span>
+</div>

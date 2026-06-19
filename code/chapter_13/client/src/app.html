@@ -1,0 +1,11 @@
+<header class="d-flex p-2 align-items-center app-header px-3 justify-content-between py-3"></header>
+<main class="main d-grid p-2 overflow-hidden h-100 px-3">
+  <section class="content overflow-auto pe-3">
+    <router-outlet></router-outlet>
+  </section>
+  <aside class="cart ps-3 overflow-auto"></aside>
+</main>
+<div class="busy-indicator"></div>
+<div
+  class="notifications notification-container position-fixed top-0 end-0 p-3 pe-none"
+  style="z-index: 9999; max-width: 400px"></div>

@@ -1,0 +1,21 @@
+:host {
+    display: grid;
+    height: 100%;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    align-content: start;
+    padding: 1rem;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.pagination {
+    // Span the full width of the grid container
+    grid-column: 1 / -1;    
+    // Add some spacing from the products above
+    margin-top: 1rem;
+}
+
+.card {
+    height: 300px;
+}

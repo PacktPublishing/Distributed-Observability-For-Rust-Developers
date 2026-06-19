@@ -1,0 +1,136 @@
+<div class="d-flex align-items-center">
+  <a class="btn back py-1" [routerLink]="['/products']">
+    <i class="bi bi-grid"></i>
+    Products
+  </a>
+</div>
+@if (product() === null) {
+  <h1 class="text-center text-danger">Product not found</h1>
+} @else {
+  <div class="card border-0">
+    <div class="card-text px-1 py-2 d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <span class="brand badge fw-semibold border rounded-2 px-2">{{ product()?.brand }}</span>
+        @if (product()?.category_name) {
+          <span class="text-muted">/</span>
+          <span class="category badge fw-semibold border rounded-2 px-2 py-1">{{ product()?.category_name }}</span>
+        }
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        @if ((product()?.stock ?? 0) > 0) {
+          <span class="stock badge fw-semibold border rounded-2 px-2 py-1">
+            <i class="bi bi-check2-circle me-2"></i>
+            In Stock
+          </span>
+        }
+        @if (product()?.discount) {
+          <span class="discount badge fw-semibold border rounded-2 px-2 py-1">{{ discount | number: '.1' }}% OFF</span>
+        }
+      </div>
+    </div>
+    <img src="/product_img.jpg" class="card-img-top mt-3" [alt]="product()?.description" />
+    <div class="card-body px-0">
+      <h5 class="card-title d-flex justify-content-between align-items-center">
+        {{ product()?.product_name }}
+        <button class="btn btn-add-cart" (click)="addToCart()">
+          <i class="bi bi-cart-plus me-2"></i>
+          Add to Cart
+        </button>
+      </h5>
+      <p class="card-text text-body-secondary">
+        {{ product()?.description }}
+      </p>
+
+      <div class="row">
+        <section class="col">
+          <ul class="list-group">
+            <li class="list-group-item">
+              <div class="me-auto d-flex align-items-center gap-2">
+                @if (product()?.available_for_delivery) {
+                  <i class="bi bi-check-square text-success"></i>
+                } @else {
+                  <i class="bi bi-x-square text-danger"></i>
+                }
+                <div class="fw-bold">Available for Delivery</div>
+              </div>
+              <small class="text-muted ms-4">
+                {{
+                  product()?.available_for_delivery
+                    ? 'We ship to your preferred address. Just enter your location at checkout.'
+                    : ''
+                }}
+              </small>
+            </li>
+            <li class="list-group-item">
+              <div class="me-auto d-flex align-items-center gap-2 fw-bold">
+                @if (product()?.available_for_pickup) {
+                  <i class="bi bi-hand-thumbs-up text-success"></i>
+                } @else {
+                  <i class="bi bi-hand-thumbs-down text-danger"></i>
+                  Not
+                }
+                Available for Pickup
+              </div>
+              <small class="text-muted ms-4">
+                {{
+                  product()?.available_for_pickup
+                    ? 'You can pick up your order from our store.'
+                    : 'This product is not available for in-store pickup.'
+                }}
+              </small>
+            </li>
+            <li class="list-group-item">
+              <div class="me-auto d-flex align-items-center gap-2 fw-bold">
+                @if (product()?.free_returns) {
+                  <i class="bi bi-truck text-success"></i>
+                  Free Returns
+                } @else {
+                  <i class="bi bi-truck text-danger"></i>
+                  Restocking Fee applies
+                }
+              </div>
+              <small class="text-muted ms-4">
+                {{
+                  product()?.free_returns
+                    ? 'You can return this product for free.'
+                    : 'This product is not eligible for free returns.'
+                }}
+              </small>
+            </li>
+          </ul>
+        </section>
+        <section class="col">
+          <ul class="list-group">
+            <li class="list-group-item">
+              <div class="me-auto d-flex align-items-center gap-2">
+                <i class="bi bi-upc-scan"></i>
+                <div class="fw-bold">GTIN : {{ product()?.gtin }}</div>
+              </div>
+              <small class="text-muted ms-4">Global standard for tracking and inventory management</small>
+            </li>
+            <li class="list-group-item">
+              <div class="me-auto d-flex align-items-center gap-2 fw-bold">
+                <i class="bi bi-tag"></i>
+                SKU : {{ product()?.sku }}
+              </div>
+              <small class="text-muted ms-4">SKU (Stock Keeping Unit) is an internal inventory tracking code</small>
+            </li>
+            <li class="list-group-item">
+              <div class="me-auto d-flex align-items-center gap-2 fw-bold">
+                <i class="bi bi-box-seam"></i>
+                Stock : {{ product()?.stock || 'N/A' }}
+              </div>
+              <small class="text-muted ms-4">
+                {{
+                  (product()?.stock ?? 0) > 0
+                    ? 'In stock and ready to ship.'
+                    : 'Currently out of stock. Please check back later.'
+                }}
+              </small>
+            </li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
+}

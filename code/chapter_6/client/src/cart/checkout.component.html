@@ -1,0 +1,277 @@
+<form [formGroup]="checkoutForm" (ngSubmit)="onSubmit()">
+  <section class="card mb-3 col">
+    <div class="card-body row g-3">
+      <h5 class="fs-6">Billing Information</h5>
+      <div class="mb-3 col-6">
+        <label class="form-label">
+          First Name
+          <span class="text-danger">*</span>
+          <input
+            type="text"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('firstName')"
+            placeholder="John"
+            formControlName="firstName" />
+          @if (isFieldInvalid('firstName')) {
+            <div class="invalid-feedback d-block">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              {{ getFieldError('firstName') }}
+            </div>
+          }
+        </label>
+      </div>
+
+      <!-- Last Name -->
+      <div class="mb-3 col-6">
+        <label class="form-label">
+          Last Name
+          <span class="text-danger">*</span>
+          <input
+            type="text"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('lastName')"
+            placeholder="Doe"
+            formControlName="lastName" />
+          @if (isFieldInvalid('lastName')) {
+            <div class="invalid-feedback d-block">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              {{ getFieldError('lastName') }}
+            </div>
+          }
+        </label>
+      </div>
+
+      <!-- Email -->
+      <div class="mb-3 col-6">
+        <label class="form-label">
+          Email
+          <span class="text-danger">*</span>
+          <input
+            type="email"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('email')"
+            placeholder="name@example.com"
+            formControlName="email" />
+          @if (isFieldInvalid('email')) {
+            <div class="invalid-feedback d-block">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              {{ getFieldError('email') }}
+            </div>
+          }
+        </label>
+      </div>
+
+      <!-- Phone Number -->
+      <div class="mb-3 col-6">
+        <label class="form-label">
+          Phone Number
+          <span class="text-danger">*</span>
+          <input
+            type="tel"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('phoneNumber')"
+            placeholder="+1 (555) 123-4567"
+            formControlName="phoneNumber" />
+          @if (isFieldInvalid('phoneNumber')) {
+            <div class="invalid-feedback d-block">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              {{ getFieldError('phoneNumber') }}
+            </div>
+          }
+        </label>
+      </div>
+
+      <!-- Card Input -->
+      <div class="mb-3 col-6">
+        <label class="form-label">
+          Card Number
+          <span class="text-danger">*</span>
+        </label>
+        <div class="card-input"></div>
+        @if (submitted() && cardInputComponent && !cardInputComponent.isValidCard()) {
+          <div class="invalid-feedback d-block">
+            <i class="bi bi-exclamation-circle me-1"></i>
+            Please enter a valid 16-digit card number
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Address Section -->
+  <section class="card mb-3 col">
+    <div class="card-body row g-3">
+      <h5 class="fs-6">Shipping Address</h5>
+      <!-- Address Line 1 -->
+      <div class="mb-3 col-12">
+        <label class="form-label">
+          Address Line 1
+          <span class="text-danger">*</span>
+          <input
+            type="text"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('addressLine1')"
+            placeholder="123 Main St"
+            formControlName="addressLine1" />
+          @if (isFieldInvalid('addressLine1')) {
+            <div class="invalid-feedback d-block">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              {{ getFieldError('addressLine1') }}
+            </div>
+          }
+        </label>
+      </div>
+
+      <!-- Address Line 2 -->
+      <div class="mb-3 col-12">
+        <label class="form-label">
+          Address Line 2 (Optional)
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Apt, Suite, Unit, etc."
+            formControlName="addressLine2" />
+        </label>
+      </div>
+
+      <!-- City -->
+      <div class="mb-3 col-6">
+        <label class="form-label">
+          City
+          <span class="text-danger">*</span>
+          <input
+            type="text"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('city')"
+            placeholder="City"
+            formControlName="city" />
+          @if (isFieldInvalid('city')) {
+            <div class="invalid-feedback d-block">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              {{ getFieldError('city') }}
+            </div>
+          }
+        </label>
+      </div>
+
+      <!-- State / Province -->
+      <div class="mb-3 col-6">
+        <label class="form-label">
+          State / Province
+          <span class="text-danger">*</span>
+          <input
+            type="text"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('state')"
+            placeholder="State / Province"
+            formControlName="state" />
+          @if (isFieldInvalid('state')) {
+            <div class="invalid-feedback d-block">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              {{ getFieldError('state') }}
+            </div>
+          }
+        </label>
+      </div>
+
+      <!-- ZIP / Postal Code -->
+      <div class="mb-3 col-6">
+        <label class="form-label">
+          ZIP / Postal Code
+          <span class="text-danger">*</span>
+          <input
+            type="text"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('zipCode')"
+            placeholder="12345"
+            formControlName="zipCode" />
+          @if (isFieldInvalid('zipCode')) {
+            <div class="invalid-feedback d-block">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              {{ getFieldError('zipCode') }}
+            </div>
+          }
+        </label>
+      </div>
+
+      <!-- Country -->
+      <div class="mb-3 col-6">
+        <label class="form-label">
+          Country
+          <span class="text-danger">*</span>
+          <input
+            type="text"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('country')"
+            placeholder="US"
+            formControlName="country" />
+          @if (isFieldInvalid('country')) {
+            <div class="invalid-feedback d-block">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              {{ getFieldError('country') }}
+            </div>
+          }
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shipping Options Section -->
+  <section class="card mb-3">
+    <div class="card-body">
+      <h5 class="fs-6">Shipping Options <span class="text-danger">*</span></h5>
+      <div class="list-group">
+        @for (option of shippingOptions; track option.value) {
+          <label class="list-group-item">
+            <input class="form-check-input me-2" type="radio" [value]="option.value" formControlName="shippingOption" />
+            <i class="bi {{ option.icon }} me-2"></i>
+            {{ option.label }}
+          </label>
+        }
+      </div>
+      @if (isFieldInvalid('shippingOption')) {
+        <div class="invalid-feedback d-block mt-2">
+          <i class="bi bi-exclamation-circle me-1"></i>
+          {{ getFieldError('shippingOption') }}
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Terms & Conditions Section -->
+  <section class="card mb-3">
+    <div class="card-body">
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="agreeToTerms"
+          formControlName="agreeToTerms"
+          [class.is-invalid]="isFieldInvalid('agreeToTerms')" />
+        <label class="form-check-label" for="agreeToTerms">
+          I agree to the payment terms and confirm the order
+          <span class="text-danger">*</span>
+        </label>
+        @if (isFieldInvalid('agreeToTerms')) {
+          <div class="invalid-feedback d-block">
+            <i class="bi bi-exclamation-circle me-1"></i>
+            You must agree to the terms before proceeding
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Submit Button -->
+  <div class="d-grid">
+    <button type="submit" class="btn btn-primary btn-sm btn-lg" [disabled]="isSubmitting()">
+      @if (isSubmitting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Processing...
+      } @else {
+        <i class="bi bi-credit-card me-2"></i>
+        Place Order
+      }
+    </button>
+  </div>
+</form>

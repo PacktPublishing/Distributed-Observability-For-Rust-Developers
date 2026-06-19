@@ -1,0 +1,72 @@
+@property --angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+}
+
+i.bi-stars {
+    left: .75rem;
+    z-index: 1;
+    pointer-events: none;    
+}
+
+.form-control {
+    /* Variables for customization */
+    --border-width: 3px;
+    --input-color: #fff;
+    /* White background for the input */
+    --animation-duration: 2s;
+    /* Matches Bootstrap's default border-radius */
+    --bs-focus-shadow: none;
+    /* Override Bootstrap's focus shadow variable */
+    font-size: 1rem;
+    border: var(--border-width) solid transparent;
+    position: relative;
+    z-index: 0;
+    padding-right: 2.5rem;
+    padding-left: 2rem;
+    --angle: 0deg;
+    min-width: 25rem;
+    background:
+        linear-gradient(var(--input-color), var(--input-color)) padding-box,
+        conic-gradient(from var(--angle),
+            #4f98f6,
+            /* Blue */
+            #ea4335,
+            /* Red */
+            #fbbc05,
+            /* Yellow */
+            #34a853,
+            /* Green */
+            #4f98f6
+            /* Back to Blue */
+        ) border-box;
+
+    background-clip: padding-box, border-box;
+    background-origin: padding-box, border-box;
+
+    transition: none !important;
+    box-shadow: none !important;
+}
+
+.form-control:focus {
+    animation: rotate var(--animation-duration) linear infinite;
+    box-shadow: none !important;
+}
+
+button {
+    right: .25rem;
+    &:hover,
+    &:active,
+    &:focus {
+        color: #000;
+    }
+}
+
+
+/* 3. Define the rotation animation */
+@keyframes rotate {
+    to {
+        --angle: 360deg;
+    }
+}

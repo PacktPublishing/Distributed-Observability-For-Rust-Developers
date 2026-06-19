@@ -1,0 +1,95 @@
+<div class="d-flex flex-column gap-3 p-3 w-100">
+  <!-- Pagination Controls -->
+  @if (totalPages() > 1) {
+    <div class="btn-toolbar justify-content-center mb-2" role="toolbar" aria-label="Pagination toolbar">
+      <!-- First & Previous -->
+      <div class="btn-group me-2" role="group" aria-label="Previous navigation">
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          [disabled]="!canGoPrevious()"
+          (click)="goToPage(1)"
+          title="First page">
+          <i class="bi bi-chevron-double-left"></i>
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          [disabled]="!canGoPrevious()"
+          (click)="goToPage(page() - 1)"
+          title="Previous page">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+      </div>
+
+      <!-- Page Numbers -->
+      <div class="btn-group me-2" role="group" aria-label="Page numbers">
+        @for (p of getVisiblePages(); track p) {
+          @if (p === '...') {
+            <button type="button" class="btn btn-outline-primary disabled">⋯</button>
+          } @else {
+            <button
+              type="button"
+              class="btn"
+              [class.btn-primary]="(+p) === page()"
+              [class.btn-outline-primary]="(+p) !== page()"
+              (click)="goToPage(+p)">
+              {{ p }}
+            </button>
+          }
+        }
+      </div>
+
+      <!-- Next & Last -->
+      <div class="btn-group" role="group" aria-label="Next navigation">
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          [disabled]="!canGoNext()"
+          (click)="goToPage(page() + 1)"
+          title="Next page">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          [disabled]="!canGoNext()"
+          (click)="goToPage(totalPages())"
+          title="Last page">
+          <i class="bi bi-chevron-double-right"></i>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Results Summary -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pb-2 border-bottom">
+    <div class="d-flex align-items-center gap-2">
+      @if (total() > 0) {
+        <small class="text-muted">
+          Showing
+          <span class="fw-semibold text-dark">
+            {{ startItem() | number: '1.0-0' }}-{{ endItem() | number: '1.0-0' }}
+          </span>
+          of
+          <span class="fw-semibold text-dark">{{ total() | number: '1.0-0' }}</span>
+          {{ total() === 1 ? 'item' : 'items' }}
+        </small>
+      } @else {
+        <small class="text-danger fw-semibold">No items found</small>
+      }
+    </div>
+
+    <!-- Page Size Selector -->
+    <div class="d-flex align-items-center gap-2">
+      <label for="pageSize" class="text-muted small mb-0">Show:</label>
+      <select id="pageSize" class="form-select form-select-sm" (change)="onPageSizeChange($event)" style="width: auto">
+        @for (size of pageSizes; track size) {
+          <option [value]="size" [selected]="size === pageSize()">{{ size }}</option>
+        }
+      </select>
+    </div>
+  </div>
+</div>

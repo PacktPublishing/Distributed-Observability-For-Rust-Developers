@@ -1,0 +1,28 @@
+# Orders Service Configuration for Docker
+
+[server]
+# Server port
+port = 3003
+
+[database]
+# PostgreSQL connection URL (using postgres service name in docker-compose)
+url = "postgres://opentel_user:opentel_pass@postgres:5432/opentel_db"
+# Maximum number of connections in the pool
+max_connections = 5
+
+[services]
+# Products Service (using service name in docker-compose)
+products_host = "products"
+products_port = 3001
+
+# Inventory Service (using service name in docker-compose)
+inventory_host = "inventory"
+inventory_port = 3002
+
+# Fraud Scoring Service (using service name in docker-compose)
+fraud_scoring_host = "fraud_scoring"
+fraud_scoring_port = 3004
+
+[http_client]
+# Request timeout in seconds
+timeout_secs = 30

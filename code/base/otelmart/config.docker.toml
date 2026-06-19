@@ -1,0 +1,42 @@
+# OtelMart Service Configuration for Docker
+
+[server]
+# Server port
+port = 4200
+# Static files directory (Angular build output)
+static_dir = "./dist/otelmart-app/browser"
+
+[database]
+# PostgreSQL connection URL
+url = "postgres://opentel_user:opentel_pass@postgres:5432/opentel_db"
+# Maximum number of connections in the pool
+max_connections = 5
+
+[services]
+# Products Service
+products_host = "products"
+products_port = 3001
+
+# Inventory Service
+inventory_host = "inventory"
+inventory_port = 3002
+
+# Orders Service
+orders_host = "orders"
+orders_port = 3003
+
+# Checkout Service (deprecated)
+checkout_host = "host.docker.internal"
+checkout_port = 3003
+
+# Legacy URLs (for backward compatibility)
+inventory_service_url = "http://inventory:3002"
+orders_service_url = "http://orders:3003"
+
+[http_client]
+# Request timeout in seconds
+timeout_secs = 30
+
+[session]
+# Session expiration in days
+expiration_days = 7

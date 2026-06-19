@@ -1,0 +1,16 @@
+<section class="search w-100 justify-content-center d-flex"></section>
+<section class="user-info d-flex align-items-center gap-4 fs-4">
+  <button type="button" class="btn cart position-relative pe-none" #cartBtn aria-label="Shopping cart">
+    <i class="bi bi-cart-plus fs-5"></i>
+    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill">
+      {{ cartService.totalItems() }}
+      <span class="visually-hidden">total items in the cart</span>
+    </span>
+  </button>
+  <button
+    class="btn profile dropdown"
+    type="button"
+    #profileBtn
+    aria-label="User profile menu"
+    (clickOutside)="profileBtn.onClickOutside($event)"></button>
+</section>

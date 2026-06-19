@@ -1,0 +1,17 @@
+.badge {
+    background-color: var(--green-3);
+    color: var(--green-12);    
+}
+
+.cart,
+.profile {
+    color: var(--gray-10);
+    border: 1px solid var(--gray-8);
+    padding: .125rem .75rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background-color: var(--gray-10);
+        color: var(--gray-1);
+    }
+}

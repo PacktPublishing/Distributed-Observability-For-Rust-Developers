@@ -1,0 +1,39 @@
+# Grafana datasource provisioning for Chapter 14
+# Auto-configures Prometheus, Jaeger, and Loki datasources on startup
+
+apiVersion: 1
+
+datasources:
+  # Prometheus — metrics backend
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+
+  # Loki — log aggregation backend (provisioned before Jaeger so tracesToLogsV2 can reference its UID)
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    uid: loki
+    editable: true
+
+  # Jaeger — distributed tracing backend (after Loki so its UID is available)
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    uid: jaeger
+    editable: true
+    jsonData:
+      tracesToLogsV2:
+        # Link from trace spans to Loki logs using trace_id structured metadata
+        datasourceUid: loki
+        spanStartTimeShift: "-1m"
+        spanEndTimeShift: "1m"
+        filterByTraceID: false
+        filterBySpanID: false
+        customQuery: true
+        query: '{service_name=~".+"} | trace_id = `$${__span.traceId}`'

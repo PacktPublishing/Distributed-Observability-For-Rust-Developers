@@ -1,0 +1,54 @@
+{
+  "name": "open_tel_ecommerce",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve --port 4500",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "prettier": {
+    "printWidth": 120,
+    "singleQuote": true,
+    "semi": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular",
+          "htmlWhitespaceSensitivity": "ignore",
+          "bracketSameLine": true
+        }
+      }
+    ]
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/common": "20.3.9",
+    "@angular/compiler": "20.3.9",
+    "@angular/core": "20.3.9",
+    "@angular/forms": "20.3.9",
+    "@angular/platform-browser": "20.3.9",
+    "@angular/router": "20.3.9",
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
+    "open-props": "1.7.16",
+    "rxjs": "7.8.2",
+    "tslib": "2.8.1"
+  },
+  "devDependencies": {
+    "@angular/build": "20.3.8",
+    "@angular/cli": "20.3.8",
+    "@angular/compiler-cli": "20.3.9",
+    "@types/jasmine": "5.1.12",
+    "jasmine-core": "5.12.1",
+    "karma": "6.4.4",
+    "karma-chrome-launcher": "3.2.0",
+    "karma-coverage": "2.2.1",
+    "karma-jasmine": "5.1.0",
+    "karma-jasmine-html-reporter": "2.1.0",
+    "prettier": "3.6.2",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,61 @@
+form {
+    font-size: .90rem;
+}
+
+input {
+    font-size: .85rem;
+}
+
+.list-group-item {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: var(--bs-light);
+    }
+
+    input[type="radio"] {
+        cursor: pointer;
+    }
+}
+
+// Card styling
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+// Form validation styling enhancements
+.form-control.is-invalid,
+.form-check-input.is-invalid {
+    border-color: var(--bs-danger);
+
+    &:focus {
+        border-color: var(--bs-danger);
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-danger-rgb), 0.25);
+    }
+}
+
+.form-control.is-valid {
+    border-color: var(--bs-success);
+
+    &:focus {
+        border-color: var(--bs-success);
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-success-rgb), 0.25);
+    }
+}
+
+// Required field indicator
+.text-danger {
+    font-weight: 600;
+}
+
+// Submit button
+.btn-lg {
+    font-size: 1.1rem;
+    padding: 0.75rem 1.5rem;
+}
+
+// Alert styling
+.alert {
+    border-left: 4px solid var(--bs-danger);
+}

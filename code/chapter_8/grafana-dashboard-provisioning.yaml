@@ -1,0 +1,17 @@
+# Chapter 8: Grafana dashboard provisioning.
+# Auto-loads dashboard JSON files from /etc/grafana/provisioning/dashboards
+# (the directory mounted into the Grafana container by docker-compose).
+
+apiVersion: 1
+
+providers:
+  - name: 'chapter-8-dashboards'
+    orgId: 1
+    folder: 'Chapter 8'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      # Path inside the Grafana container; see docker-compose mount.
+      path: /etc/grafana/dashboards

@@ -1,0 +1,20 @@
+# Fraud Scoring Service Configuration for Docker
+
+[server]
+port = 3004
+
+[provider]
+# Provider backend: "mock" (default) or "anthropic"
+name = "mock"
+# Two-tier model routing
+high_risk_model = "claude-opus-4-6"
+low_risk_model = "claude-haiku-4-5"
+# Max tokens the model should generate
+max_tokens = 512
+# Sampling temperature
+temperature = 0.1
+# Timeout for the GenAI call in seconds
+timeout_secs = 5
+
+[http_client]
+timeout_secs = 10

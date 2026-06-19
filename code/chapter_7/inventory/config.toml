@@ -1,0 +1,11 @@
+# Inventory Service Configuration
+
+[server]
+# Server port
+port = 3002
+
+[database]
+# PostgreSQL connection URL (port 5433 because of Docker mapping)
+url = "postgres://opentel_user:opentel_pass@localhost:5433/opentel_db"
+# Maximum number of connections in the pool
+max_connections = 5

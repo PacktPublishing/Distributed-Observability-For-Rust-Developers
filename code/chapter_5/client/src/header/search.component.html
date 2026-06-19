@@ -1,0 +1,19 @@
+<form
+  class="d-flex align-items-center overflow-hidden position-relative"
+  [formGroup]="searchForm"
+  (ngSubmit)="onSearchSubmit()"
+>
+  <i class="bi bi-stars position-absolute text-info-emphasis"></i>
+  <input
+    type="text"
+    class="form-control rounded-5"
+    formControlName="search"
+    placeholder="Search for your favourite products"
+    aria-label="Search for your favourite products"
+    aria-describedby="button-addon2"
+  />
+  <button
+    class="btn text-info-emphasis bi bi-search border-0 bg-transparent position-absolute"
+    type="submit"
+  ></button>
+</form>

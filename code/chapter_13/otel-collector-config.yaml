@@ -1,0 +1,51 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    send_batch_size: 256
+    send_batch_max_size: 512
+    timeout: 5s
+  tail_sampling:
+    decision_wait: 10s
+    num_traces: 100000
+    expected_new_traces_per_sec: 1000
+    policies:
+      # POLICY 1: Keep 100% of traces with authentication failures
+      - name: security-auth-failures
+        type: boolean_attribute
+        boolean_attribute: { key: otelmart.auth.success, value: false }
+      # POLICY 2: Keep 100% of traces with massive Data Exfiltration
+      - name: security-data-exfiltration
+        type: numeric_attribute
+        numeric_attribute: { key: db.response.returned_rows, min_value: 100 }
+      # POLICY 3: Keep 100% of traces hitting DoS limits
+      - name: security-dos-dropped
+        type: string_attribute
+        string_attribute: { key: otelmart.security.event.type, values: ["dos_protection"] }
+      # POLICY 4: Keep 100% of traces with HTTP 5xx errors
+      - name: server-errors
+        type: numeric_attribute
+        numeric_attribute: { key: http.response.status_code, min_value: 500 }
+      # BASELINE: Keep only 1% of normal healthy traffic
+      - name: baseline-healthy-traffic
+        type: probabilistic
+        probabilistic: { sampling_percentage: 1 }
+
+exporters:
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [tail_sampling, batch]
+      exporters: [otlp/jaeger]

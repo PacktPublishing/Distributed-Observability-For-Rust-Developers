@@ -1,0 +1,53 @@
+<ul class="list-group mt-3">
+  @for (item of cartService.cartItems(); track item.product.eid) {
+    @let product = item.product;
+    <li class="list-group-item p-0 border-0 mb-1">
+      <a class="card text-decoration-none" [routerLink]="['products', product.eid]">
+        <header class="card-header border-bottom-0">
+          {{ product.product_name }}
+        </header>
+        <div class="card-body py-0 d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-3">
+            @if (product.brand) {
+              <span class="brand badge fw-semibold border rounded-2 px-2">{{ product.brand | titlecase }}</span>
+            }
+            <span class="category badge fw-semibold border rounded-2 px-2 py-1">{{ product?.category_name }}</span>
+          </div>
+          <span class="d-flex align-items-center gap-2">
+            Qty:
+            <button class="qty btn btn-sm" (click)="updateQuantity(item, $event)">
+              {{ item.quantity }}
+              <i class="bi-bag-plus-fill pe-none fs-6 ms-2"></i>
+            </button>
+          </span>
+        </div>
+        <div class="card-footer border-top-0 justify-content-between d-flex align-items-center">
+          <div class="d-flex align-items-center">
+            <small class="mb-0 fw-semibold">
+              Cost: {{ +item.product.final_price * item.quantity | currency: 'USD' : 'symbol' : '.2' }}
+            </small>
+            @if (product!.initial_price && product!.discount) {
+              <small class="text-muted ms-2">
+                Savings: {{ +product.initial_price * item.quantity | currency: 'USD' : 'symbol' : '.2' }}
+              </small>
+            }
+          </div>
+          <button class="btn btn-sm btn-danger bi-trash" (click)="removeItem(product.eid, $event)"></button>
+        </div>
+      </a>
+    </li>
+  }
+</ul>
+<div class="actions d-flex justify-content-between align-items-center px-2">
+  <strong class="total px-3 py-1 rounded-3">
+    Total: {{ cartService.totalPrice() | currency: 'USD' : 'symbol' : '.2' }}
+  </strong>
+  <span class="d-flex gap-2">
+    <button class="btn cancel btn-sm me-2" (click)="clearCart()">Clear Cart</button>
+    @if (checkoutInProgress()) {
+      <a class="btn checkout btn-sm disabled">Checkout</a>
+    } @else {
+      <a class="btn checkout btn-sm" [routerLink]="['/checkout']">Checkout</a>
+    }
+  </span>
+</div>

@@ -1,0 +1,202 @@
+services:
+  # ============================================================
+  # Jaeger - Distributed Tracing Backend
+  # ============================================================
+  # All-in-one Jaeger instance for collecting and visualizing traces
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC receiver
+      - "4318:4318"    # OTLP HTTP receiver
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Database Service
+  # ============================================================
+  # PostgreSQL with automatic schema initialization
+  postgres:
+    image: postgres:17-alpine
+    container_name: opentel-postgres
+    environment:
+      - POSTGRES_USER=opentel_user
+      - POSTGRES_PASSWORD=opentel_pass
+      - POSTGRES_DB=opentel_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Schema initialization scripts run automatically on first startup
+      - ./schemas/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opentel_user -d opentel_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Products Service
+  # ============================================================
+  # RESTful API for product catalog (runs migrations on startup)
+  products:
+    build:
+      context: .
+      dockerfile: products/Dockerfile
+    container_name: products-service
+    ports:
+      - "3001:3001"
+    environment:
+      - APP_DATABASE_URL=postgres://opentel_user:opentel_pass@postgres:5432/opentel_db
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_SERVICE_NAME=products
+      - RUST_LOG=info,otel::tracing=trace
+    depends_on:
+      postgres:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Inventory Service
+  # ============================================================
+  # RESTful API for inventory and pricing management (runs migrations on startup)
+  inventory:
+    build:
+      context: .
+      dockerfile: inventory/Dockerfile
+    container_name: inventory-service
+    ports:
+      - "3002:3002"
+    environment:
+      - APP_DATABASE_URL=postgres://opentel_user:opentel_pass@postgres:5432/opentel_db
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_SERVICE_NAME=inventory
+      - RUST_LOG=info,otel::tracing=trace
+    depends_on:
+      postgres:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Orders Service
+  # ============================================================
+  # RESTful API for order management, checkout, and shipment tracking (runs migrations on startup)
+  orders:
+    build:
+      context: .
+      dockerfile: orders/Dockerfile
+    container_name: orders-service
+    ports:
+      - "3003:3003"
+    environment:
+      - APP_DATABASE_URL=postgres://opentel_user:opentel_pass@postgres:5432/opentel_db
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_SERVICE_NAME=orders
+      - RUST_LOG=info,otel::tracing=trace
+    depends_on:
+      postgres:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================================
+  # Data Ingestion Service
+  # ============================================================
+  # Loads initial data after products service runs migrations
+  # Note: Waits 10s after products starts to ensure migrations complete
+  data-ingestion:
+    build:
+      context: ./schemas
+      dockerfile: data/Dockerfile
+    container_name: data-ingestion
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=opentel_db
+      - DB_USER=opentel_user
+      - DB_PASSWORD=opentel_pass
+      - WAIT_TIME=10
+    depends_on:
+      postgres:
+        condition: service_healthy
+      products:
+        condition: service_started
+    networks:
+      - app-network
+    restart: "no"  # Run once and exit
+
+  # ============================================================
+  # OtelMart Service
+  # ============================================================
+  # Main e-commerce application (Rust backend + Angular frontend)
+  otelmart:
+    build:
+      context: .
+      dockerfile: otelmart/Dockerfile
+    container_name: otelmart
+    ports:
+      - "4200:4200"
+    environment:
+      - APP_DATABASE__URL=postgres://opentel_user:opentel_pass@postgres:5432/opentel_db
+      - APP_SERVICES__PRODUCTS_HOST=products
+      - APP_SERVICES__PRODUCTS_PORT=3001
+      - APP_SERVICES__INVENTORY_HOST=inventory
+      - APP_SERVICES__INVENTORY_PORT=3002
+      - APP_SERVICES__ORDERS_HOST=orders
+      - APP_SERVICES__ORDERS_PORT=3003
+      - APP_SERVICES__INVENTORY_SERVICE_URL=http://inventory:3002
+      - APP_SERVICES__ORDERS_SERVICE_URL=http://orders:3003
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_SERVICE_NAME=otelmart
+      - RUST_LOG=info,otel::tracing=trace
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+      data-ingestion:
+        condition: service_completed_successfully
+      products:
+        condition: service_started
+      inventory:
+        condition: service_started
+      orders:
+        condition: service_started
+    networks:
+      - app-network
+    restart: unless-stopped
+
+# ============================================================
+# Networks
+# ============================================================
+networks:
+  app-network:
+    driver: bridge
+
+# ============================================================
+# Volumes
+# ============================================================
+volumes:
+  postgres_data:
+    name: opentel_postgres_data

@@ -1,0 +1,37 @@
+# Enforce LF line endings on files that are read by Linux tools inside
+# Docker containers. Without this, Windows clones with the default
+# `core.autocrlf=true` rewrite these files to CRLF on checkout, which
+# breaks shell scripts (`/bin/sh^M: not found`) and can confuse Docker.
+#
+# Set the default behaviour to auto-detect text files, but force LF for
+# the file types listed below regardless of the developer's local
+# `core.autocrlf` setting.
+* text=auto
+
+# Shell and Dockerfile entrypoints — must be LF or the container fails
+# to start (kernel can't find `/bin/sh^M`).
+*.sh                text eol=lf
+Dockerfile          text eol=lf
+*.Dockerfile        text eol=lf
+
+# Configuration files baked into Docker images or read by Linux daemons.
+*.yml               text eol=lf
+*.yaml              text eol=lf
+*.toml              text eol=lf
+*.conf              text eol=lf
+
+# Source code that compiles inside Linux containers.
+*.rs                text eol=lf
+*.sql               text eol=lf
+
+# Markdown can stay native; nothing reads it from inside a container.
+*.md                text
+
+# Binary files — never normalise.
+*.png               binary
+*.jpg               binary
+*.jpeg              binary
+*.gif               binary
+*.webp              binary
+*.ico               binary
+*.pdf               binary

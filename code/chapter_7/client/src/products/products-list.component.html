@@ -1,0 +1,6 @@
+@if (!loading() && !error() && products().length > 0) {
+  @for (product of products(); track product.eid) {
+    <div class="product" [product]="product"></div>
+  }
+  <div class="pagination" [totalPages]="totalPages()" [total]="total()" [page]="page()" [pageSize]="pageSize()"></div>
+}

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: products-postgres
+    environment:
+      POSTGRES_DB: opentel_db
+      POSTGRES_USER: opentel_user
+      POSTGRES_PASSWORD: opentel_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opentel_user -d opentel_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Products Service
+  products:
+    image: products-service
+    container_name: products-service
+    environment:
+      # Override database URL to use Docker network hostname
+      DATABASE_URL: "postgres://opentel_user:opentel_pass@postgres:5432/opentel_db"
+      RUST_LOG: info
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
