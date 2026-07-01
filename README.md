@@ -1,7 +1,7 @@
 <a href="https://www.packtpub.com/en-us/unlock"><img src="https://drive.google.com/uc?export=view&id=1lQCTQQ8iV5pGuPA1n5wuds-3pwJi0OD_"></a>
 <h1 align="center">
 Mastering Distributed Observability in Rust, First Edition</h1>
-<p align="center">This is the code repository for <a href ="https://www.packtpub.com/en-us/product/mastering-distributed-observability-in-rust-first-edition/9781806671793"> Mastering Distributed Observability in Rust, First Edition</a>, published by Packt.
+<p align="center">This is the code repository for <a href ="https://www.packtpub.com/en-us/product/mastering-distributed-observability-in-rust-first-edition-9781806671793"> Mastering Distributed Observability in Rust, First Edition</a>, published by Packt.
 </p>
 
 <h2 align="center">
